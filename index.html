@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acarajé Moda Praia</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+    body { background: linear-gradient(180deg, #FFA500, #FF4500); min-height: 100vh; padding: 20px; color: #333; }
+    
+    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; padding: 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+    
+    h1 { text-align: center; color: #FF4500; margin-bottom: 10px; font-size: 28px; }
+    .sub { text-align: center; color: #666; margin-bottom: 20px; }
+    
+    .categoria { margin-bottom: 20px; }
+    .categoria h2 { background: #FF4500; color: white; padding: 12px; border-radius: 10px; cursor: pointer; margin-bottom: 10px; }
+    .itens { display: none; padding: 10px; background: #FFF8F0; border-radius: 10px; }
+    .itens.ativo { display: block; }
+    
+    .item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px dashed #ddd; }
+    .item button { background: #FF4500; color: white; border: none; padding: 5px 12px; border-radius: 8px; cursor: pointer; }
+    .item button:hover { background: #E03E00; }
+    
+    .carrinho { background: #FFF8F0; padding: 15px; border-radius: 10px; margin: 20px 0; }
+    .carrinho h3 { color: #FF4500; margin-bottom: 10px; }
+    .total { font-size: 22px; font-weight: bold; color: #FF4500; text-align: right; }
+    
+    input, select { width: 100%; padding: 10px; margin: 8px 0; border: 2px solid #FFA500; border-radius: 8px; }
+    .btn-finalizar { width: 100%; background: #28A745; color: white; padding: 15px; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
+    .btn-finalizar:hover { background: #218838; }
+    
+    .resumo { display: none; background: #E8F5E9; padding: 15px; border-radius: 10px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🌴 ACARAJÉ MODA PRAIA</h1>
+    <p class="sub">Monte seu pedido</p>
+
+    <!-- CATEGORIAS -->
+    <div id="categorias"></div>
+
+    <!-- CARRINHO -->
+    <div class="carrinho">
+      <h3>🛒 Seu Pedido</h3>
+      <div id="lista-carrinho">Nenhum item ainda</div>
+      <p class="total">Total: R$ <span id="total">0.00</span></p>
+    </div>
+
+    <!-- DADOS DO CLIENTE -->
+    <h3>📍 Dados para Entrega</h3>
+    <input type="text" id="nome" placeholder="Nome">
+    <input type="text" id="bairro" placeholder="Bairro">
+    <input type="text" id="endereco" placeholder="Endereço">
+    <input type="text" id="referencia" placeholder="Ponto de referência">
+    <input type="tel" id="telefone" placeholder="Telefone">
+
+    <!-- PAGAMENTO -->
+    <h3>💳 Forma de Pagamento</h3>
+    <select id="pagamento">
+      <option value="PIX">PIX</option>
+      <option value="Cartão">Cartão</option>
+      <option value="Dinheiro">Dinheiro</option>
+    </select>
+    <input type="number" id="valor-recebido" placeholder="Valor recebido" style="display:none;">
+
+    <button class="btn-finalizar" onclick="finalizarPedido()">FINALIZAR PEDIDO</button>
+
+    <!-- RESUMO -->
+    <div class="resumo" id="resumo"></div>
+  </div>
+
+  <script>
+    // ===== MODULO 1: CARDÁPIO =====
+    const cardapio = {
+      acaraje: {
+        nome: "Acarajés e Combos",
+        itens: [
+          {id: 1, nome: "A Moda da Casa (20 acarajés)", preco: 35},
+          {id: 2, nome: "Porção P", preco: 25},
+          {id: 3, nome: "Porção G", preco: 30},
+          {id: 4, nome: "Porção Master", preco: 30},
+          {id: 5, nome: "Porção Extra-Big", preco: 40},
+          {id: 6, nome: "Porção Turbinada", preco: 50},
+          {id: 7, nome: "Abará", preco: 15},
+          {id: 8, nome: "Acarajé", preco: 15}
+        ]
+      },
+      petiscos: {
+        nome: "Petiscos",
+        itens: [
+          {id: 1, nome: "Batata Frita", preco: 25},
+          {id: 2, nome: "Batata Frita Recheada", preco: 30},
+          {id: 3, nome: "Carne do Sol", preco: 35},
+          {id: 4, nome: "Pitinga", preco: 30},
+          {id: 5, nome: "Passarinha", preco: 30},
+          {id: 6, nome: "Camarão ao alho e óleo", preco: 45},
+          {id: 7, nome: "Pastel (6 un.)", preco: 18},
+          {id: 8, nome: "Tripa", preco: 30},
+          {id: 9, nome: "Quibe (6 un.)", preco: 15}
+        ]
+      },
+      caldos: {
+        nome: "Caldos",
+        itens: [
+          {id: 1, nome: "Caldo de Sururu", preco: 15},
+          {id: 2, nome: "Caldo de Aipim", preco: 15}
+        ]
+      },
+      bebidas: {
+        nome: "Bebidas",
+        itens: [
+          {id: 1, nome: "Refrigerante Lata", preco: 6},
+          {id: 2, nome: "Água", preco: 3},
+          {id: 3, nome: "Suco Natural", preco: 8},
+          {id: 4, nome: "Cerveja", preco: 8}
+        ]
+      }
+    };
+
+    // ===== MODULO 2: CARRINHO =====
+    let carrinho = [];
+    let total = 0;
+
+    function adicionarItem(categoria, item) {
+      const existente = carrinho.find(i => i.id === item.id && i.categoria === categoria);
+      if (existente) {
+        existente.qtd++;
+      } else {
+        carrinho.push({...item, qtd: 1, categoria});
+      }
+      atualizarCarrinho();
+    }
+
+    function atualizarCarrinho() {
+      const lista = document.getElementById("lista-carrinho");
+      total = 0;
+      if (carrinho.length === 0) {
+        lista.innerHTML = "Nenhum item ainda";
+      } else {
+        lista.innerHTML = carrinho.map(i => {
+          total += i.preco * i.qtd;
+          return `<div>${i.qtd}x ${i.nome} - R$ ${(i.preco * i.qtd).toFixed(2)}</div>`;
+        }).join("");
+      }
+      document.getElementById("total").innerText = total.toFixed(2);
+    }
+
+    // ===== MODULO 3: TELA =====
+    function montarCategorias() {
+      const div = document.getElementById("categorias");
+      for (let key in cardapio) {
+        const cat = cardapio[key];
+        div.innerHTML += `
+          <div class="categoria">
+            <h2 onclick="toggle('${key}')">${cat.nome}</h2>
+            <div class="itens" id="${key}">
+              ${cat.itens.map(item => `
+                <div class="item">
+                  <span>${item.nome} - R$ ${item.preco.toFixed(2)}</span>
+                  <button onclick="adicionarItem('${key}', ${JSON.stringify(item).replace(/"/g, '&quot;')})">+</button>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function toggle(id) {
+      document.getElementById(id).classList.toggle("ativo");
+    }
+
+    // ===== MODULO 4: FINALIZAR =====
+    document.getElementById("pagamento").addEventListener("change", function() {
+      document.getElementById("valor-recebido").style.display = this.value === "Dinheiro" ? "block" : "none";
+    });
+
+    function finalizarPedido() {
+      const nome = document.getElementById("nome").value;
+      const bairro = document.getElementById("bairro").value;
+      const endereco = document.getElementById("endereco").value;
+      const referencia = document.getElementById("referencia").value;
+      const telefone = document.getElementById("telefone").value;
+      const pagamento = document.getElementById("pagamento").value;
+      const recebido = parseFloat(document.getElementById("valor-recebido").value) || 0;
+      const troco = recebido - total;
+
+      let resumo = `
+        <h3>✅ PEDIDO FINALIZADO!</h3>
+        <p><b>Cliente:</b> ${nome}</p>
+        <p><b>Bairro:</b> ${bairro}</p>
+        <p><b>Endereço:</b> ${endereco}</p>
+        <p><b>Referência:</b> ${referencia}</p>
+        <p><b>Telefone:</b> ${telefone}</p>
+        <p><b>Pagamento:</b> ${pagamento}</p>
+        ${pagamento === "Dinheiro" ? `<p><b>Troco:</b> R$ ${troco.toFixed(2)}</p>` : ""}
+        <hr>
+        <p><b>Total:</b> R$ ${total.toFixed(2)}</p>
+      `;
+      document.getElementById("resumo").innerHTML = resumo;
+      document.getElementById("resumo").style.display = "block";
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    // Inicia o site
+    montarCategorias();
+  </script>
+
+</body>
+</html>
